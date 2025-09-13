@@ -55,6 +55,10 @@ public class Main {
         }
     }
 
+    private static boolean isOptionAbbreviation(String o) {
+        return "im".equals(o) || "n".equals(o);
+    }
+
     private static Result<Deque<CardPrototype>> loadCardsFromFile(JsonObject options, JsonObject overrides, String defaultTemplate, TemplateLoader... templateLoaders) {
         Deque<CardPrototype> result = new ArrayDeque<>();
 
@@ -97,14 +101,32 @@ public class Main {
                             String key = split[0];
                             String value = split.length == 2 ? split[1] : null;
 
-                            if (key.equals("override")) {
+                            // "im" and "n" are shorthands
+                            if (isOptionAbbreviation(key) || key.equals("override")) {
                                 if (value != null) {
-                                    split = value.split(":", 2);
-                                    String[] overrideKey = split[0].split("\\.");
-                                    value = split.length == 2 ? split[1] : null;
+                                    String[] overrideKey;
+
+
+                                    // syntactic sugar
+                                    if (isOptionAbbreviation(key)) {
+                                      if ("im".equals(key)) {
+                                        overrideKey = new String[] {"image_uris", "art_crop"};
+                                      } else if ("n".equals(key)) {
+                                        overrideKey = new String[] {"name"};
+                                      } else {
+                                          throw new RuntimeException("Unhandled abbreviation " + key);
+                                      }
+                                    } else {
+                                      split = value.split(":", 2);
+                                      overrideKey = split[0].split("\\.");
+                                      value = split.length == 2 ? split[1] : null;
+                                    }
 
                                     if (value != null && value.length() > 1 && value.startsWith("\"") && value.endsWith("\"")) {
                                         value = value.substring(1, value.length() - 1);
+                                        if ("im".equals(key)) {
+                                             value = "file:input/" + value;
+                                        }
                                     }
 
                                     Result<JsonElement> v = ParsingUtil.parseStringValue(value);
