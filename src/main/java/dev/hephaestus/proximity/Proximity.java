@@ -176,8 +176,11 @@ public final class Proximity {
             JsonObject overrides = prototype.overrides().getAsJsonObject();
             JsonPrimitive oracleTextJson = cardData.get("oracle_text").getAsJsonPrimitive();
             String oldOracleText = oracleTextJson.getAsString();
-            String nameToReplace = cardData.get("name").getAsString();
+            final String oldName = cardData.get("name").getAsString();
+            String nameToReplace = oldName;
             String newName       = overrides.get("name").getAsString();
+
+            // 1. Replace name in oracle text
 
             // shorten the new name if we can
             if (newName.contains(",")) {
@@ -207,6 +210,15 @@ public final class Proximity {
                 System.out.println("Old Oracle Text:\n" + oldOracleText);
                 System.out.println("New Oracle Text:\n" + newOracleText);
                 System.out.println();
+            }
+
+            // 2. Replace flavor text with information on the renaming.
+            final String proxyInfo = "Proxy of: " + oldName;
+            if (overrides.has("flavor_text")) {
+                JsonPrimitive fl = overrides.get("flavor_text").getAsJsonPrimitive();
+                fl.setValue(fl.getAsString() + "\n" + proxyInfo);
+            } else {
+                overrides.add(new String[] {"flavor_text"}, new JsonPrimitive(proxyInfo));
             }
         }
 
