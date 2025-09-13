@@ -9,7 +9,11 @@ import java.math.BigInteger;
 
 
 public final class JsonPrimitive extends JsonElement {
-    private final Object value;
+    private Object value;
+
+    public void setValue(Object v) {
+        this.value = v;
+    }
 
     @HostAccess.Export
     public JsonPrimitive(boolean bool) {
