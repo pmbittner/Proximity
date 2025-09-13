@@ -168,12 +168,11 @@ public final class Proximity {
         // refine oracle text
         // "name" is original
         // If we overwrite the name of the card and the card has an oracle text.
-        if (!prototype.overrides().isJsonNull()
-            && prototype.overrides().has("name")
+        final JsonObject overrides = prototype.overrides().getAsJsonObject();
+        if (overrides.has("name")
             && prototype.getData().has("oracle_text"))
         {
             JsonObject cardData = prototype.getData().getAsJsonObject();
-            JsonObject overrides = prototype.overrides().getAsJsonObject();
             JsonPrimitive oracleTextJson = cardData.get("oracle_text").getAsJsonPrimitive();
             String oldOracleText = oracleTextJson.getAsString();
             final String oldName = cardData.get("name").getAsString();
@@ -212,14 +211,8 @@ public final class Proximity {
                 System.out.println();
             }
 
-            // 2. Replace flavor text with information on the renaming.
-            final String proxyInfo = "Proxy of: " + oldName;
-            if (overrides.has("flavor_text")) {
-                JsonPrimitive fl = overrides.get("flavor_text").getAsJsonPrimitive();
-                fl.setValue(fl.getAsString() + "\n" + proxyInfo);
-            } else {
-                overrides.add(new String[] {"flavor_text"}, new JsonPrimitive(proxyInfo));
-            }
+            // 2. Replace the artist with the name of the original card.
+            overrides.add(new String[] {"artist"}, new JsonPrimitive(oldName));
         }
 
         Values.LIST_NAME.set(prototype.getData(), prototype.listName());
