@@ -56,7 +56,7 @@ public class Main {
     }
 
     private static boolean isOptionAbbreviation(String o) {
-        return "im".equals(o) || "n".equals(o) || "fl".equals(o);
+        return "im".equals(o) || "n".equals(o) || "fl".equals(o) || "art".equals(o);
     }
 
     private static Result<Deque<CardPrototype>> loadCardsFromFile(JsonObject options, JsonObject overrides, String defaultTemplate, TemplateLoader... templateLoaders) {
@@ -106,15 +106,16 @@ public class Main {
                                 if (value != null) {
                                     String[] overrideKey;
 
-
                                     // syntactic sugar
                                     if (isOptionAbbreviation(key)) {
                                       if ("im".equals(key)) {
-                                        overrideKey = new String[] {"image_uris", "art_crop"};
+                                          overrideKey = new String[] {"image_uris", "art_crop"};
                                       } else if ("n".equals(key)) {
-                                        overrideKey = new String[] {"name"};
+                                          overrideKey = new String[] {"name"};
                                       } else if ("fl".equals(key)) {
-                                        overrideKey = new String[] {"flavor_text"};
+                                          overrideKey = new String[] {"flavor_text"};
+                                      } else if ("art".equals(key)) {
+                                          overrideKey = new String[] {"artist"};
                                       } else {
                                           throw new RuntimeException("Unhandled abbreviation " + key);
                                       }
