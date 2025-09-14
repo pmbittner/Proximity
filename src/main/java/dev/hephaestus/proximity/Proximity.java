@@ -173,8 +173,10 @@ public final class Proximity {
             final String newName = overrides.get("name").getAsString();
 
             // 1. Document the alias
-            overrides.add(new String[] {"custom_alt_text"}, new JsonPrimitive("Variant of: " + oldName));
-            System.out.println("Document variant '" + newName + "' of '" + oldName + "'.");
+            if (!overrides.has("novariant")) {
+              overrides.add(new String[] {"custom_alt_text"}, new JsonPrimitive("Variant of: " + oldName));
+              System.out.println("Document variant '" + newName + "' of '" + oldName + "'.");
+            }
 
             // 2. Replace name in oracle text.
             if (prototype.getData().has("oracle_text")) {
