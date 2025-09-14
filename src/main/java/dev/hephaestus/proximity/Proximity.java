@@ -165,17 +165,16 @@ public final class Proximity {
                 .copyAll(this.options)
                 .copyAll(prototype.options());
 
-        // refine oracle text
-        // "name" is original
         // If we overwrite the name of the card and the card has an oracle text.
         final JsonObject overrides = prototype.overrides().getAsJsonObject();
+        final JsonObject cardData = prototype.getData().getAsJsonObject();
         if (overrides.has("name")) {
-            final JsonObject cardData = prototype.getData().getAsJsonObject();
             final String oldName = cardData.get("name").getAsString();
+            final String newName = overrides.get("name").getAsString();
 
-            // 1. Replace the artist with the name of the original card.
-            overrides.add(new String[] {"artist"}, new JsonPrimitive(oldName));
-            System.out.println("Replaced artist with " + oldName);
+            // 1. Document the alias
+            overrides.add(new String[] {"custom_alt_text"}, new JsonPrimitive("Variant of: " + oldName));
+            System.out.println("Document variant '" + newName + "' of '" + oldName + "'.");
 
             // 2. Replace name in oracle text.
             if (prototype.getData().has("oracle_text")) {
@@ -185,12 +184,12 @@ public final class Proximity {
                     cardData.get("oracle_text").getAsJsonPrimitive();
 
                 final String oldOracleText = oracleTextJson.getAsString();;
-                String nameToReplace = oldName;
-                String newName       = overrides.get("name").getAsString();
+                String nameToReplace   = oldName;
+                String nameReplacement = newName;
 
                 // shorten the new name if we can
-                if (newName.contains(",")) {
-                    newName = newName.split(",")[0];
+                if (nameReplacement.contains(",")) {
+                    nameReplacement = nameReplacement.split(",")[0];
                 }
 
                 // We replace the old name with the new name. Sometimes, the old name is abbreviated in the text. In this case, we do the same thing with the new text.
@@ -208,11 +207,11 @@ public final class Proximity {
                 }
 
                 if (oldOracleText.contains(nameToReplace)) {
-                    String newOracleText = oldOracleText.replaceAll(nameToReplace, newName);
+                    String newOracleText = oldOracleText.replaceAll(nameToReplace, nameReplacement);
                     oracleTextJson.setValue(newOracleText);
 
                     // System.out.println("Overrides: " + overrides);
-                    System.out.println("Replacing name: '" + nameToReplace + "' with '" + newName + "'.");
+                    System.out.println("Replacing name: '" + nameToReplace + "' with '" + nameReplacement + "'.");
                     System.out.println("Old Oracle Text:\n" + oldOracleText);
                     System.out.println("New Oracle Text:\n" + newOracleText);
                     System.out.println();
