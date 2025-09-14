@@ -169,50 +169,55 @@ public final class Proximity {
         // "name" is original
         // If we overwrite the name of the card and the card has an oracle text.
         final JsonObject overrides = prototype.overrides().getAsJsonObject();
-        if (overrides.has("name")
-            && prototype.getData().has("oracle_text"))
-        {
-            JsonObject cardData = prototype.getData().getAsJsonObject();
-            JsonPrimitive oracleTextJson = cardData.get("oracle_text").getAsJsonPrimitive();
-            String oldOracleText = oracleTextJson.getAsString();
+        if (overrides.has("name")) {
+            final JsonObject cardData = prototype.getData().getAsJsonObject();
             final String oldName = cardData.get("name").getAsString();
-            String nameToReplace = oldName;
-            String newName       = overrides.get("name").getAsString();
 
-            // 1. Replace name in oracle text
+            // 1. Replace the artist with the name of the original card.
+            overrides.add(new String[] {"artist"}, new JsonPrimitive(oldName));
+            System.out.println("Replaced artist with " + oldName);
 
-            // shorten the new name if we can
-            if (newName.contains(",")) {
-                newName = newName.split(",")[0];
-            }
+            // 2. Replace name in oracle text.
+            if (prototype.getData().has("oracle_text")) {
+                final JsonPrimitive oracleTextJson =
+                    overrides.has("oracle_text") ?
+                    overrides.get("oracle_text").getAsJsonPrimitive() :
+                    cardData.get("oracle_text").getAsJsonPrimitive();
 
-            // We replace the old name with the new name. Sometimes, the old name is abbreviated in the text. In this case, we do the same thing with the new text.
-            if (!oldOracleText.contains(nameToReplace)) {
-                if (nameToReplace.contains(",")) {
-                    // shorten by comma. Example: "Nelly Borca, Impulsive Accuser"
-                    nameToReplace = nameToReplace.split(",")[0];
-                } else if (nameToReplace.contains(" ")) {
-                    // try to shorten by first word. Example: "Loran of the Third Path"
-                    String firstWordInName = nameToReplace.split(" ")[0];
-                    if (oldOracleText.contains(firstWordInName)) {
-                        nameToReplace = firstWordInName;
+                final String oldOracleText = oracleTextJson.getAsString();;
+                String nameToReplace = oldName;
+                String newName       = overrides.get("name").getAsString();
+
+                // shorten the new name if we can
+                if (newName.contains(",")) {
+                    newName = newName.split(",")[0];
+                }
+
+                // We replace the old name with the new name. Sometimes, the old name is abbreviated in the text. In this case, we do the same thing with the new text.
+                if (!oldOracleText.contains(nameToReplace)) {
+                    if (nameToReplace.contains(",")) {
+                        // shorten by comma. Example: "Nelly Borca, Impulsive Accuser"
+                        nameToReplace = nameToReplace.split(",")[0];
+                    } else if (nameToReplace.contains(" ")) {
+                        // try to shorten by first word. Example: "Loran of the Third Path"
+                        String firstWordInName = nameToReplace.split(" ")[0];
+                        if (oldOracleText.contains(firstWordInName)) {
+                            nameToReplace = firstWordInName;
+                        }
                     }
                 }
+
+                if (oldOracleText.contains(nameToReplace)) {
+                    String newOracleText = oldOracleText.replaceAll(nameToReplace, newName);
+                    oracleTextJson.setValue(newOracleText);
+
+                    // System.out.println("Overrides: " + overrides);
+                    System.out.println("Replacing name: '" + nameToReplace + "' with '" + newName + "'.");
+                    System.out.println("Old Oracle Text:\n" + oldOracleText);
+                    System.out.println("New Oracle Text:\n" + newOracleText);
+                    System.out.println();
+                }
             }
-
-            if (oldOracleText.contains(nameToReplace)) {
-                String newOracleText = oldOracleText.replaceAll(nameToReplace, newName);
-                oracleTextJson.setValue(newOracleText);
-
-                // System.out.println("Overrides: " + overrides);
-                System.out.println("Replacing name: '" + nameToReplace + "' with '" + newName + "'.");
-                System.out.println("Old Oracle Text:\n" + oldOracleText);
-                System.out.println("New Oracle Text:\n" + newOracleText);
-                System.out.println();
-            }
-
-            // 2. Replace the artist with the name of the original card.
-            overrides.add(new String[] {"artist"}, new JsonPrimitive(oldName));
         }
 
         Values.LIST_NAME.set(prototype.getData(), prototype.listName());
