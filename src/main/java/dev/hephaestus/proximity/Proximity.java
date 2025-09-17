@@ -50,6 +50,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public final class Proximity {
     public static Logger LOG = LogManager.getLogger("Proximity");
@@ -160,6 +161,12 @@ public final class Proximity {
                 : Result.error("Error rendering cards:\n\t%s", String.join("\n\t", errors));
     }
 
+
+    public static void Assert(boolean b, Supplier<String> errorMessage) {
+        if (!b) {
+            throw new RuntimeException(errorMessage.get());
+        }
+    }
     private void processCard(CardPrototype prototype, Consumer<RenderableData> dataConsumer, Consumer<String> errorConsumer) {
         prototype.getData().getAsJsonObject("proximity", "options")
                 .copyAll(this.options)
