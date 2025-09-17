@@ -3,6 +3,7 @@ package dev.hephaestus.proximity;
 import com.github.yuchi.semver.Version;
 import dev.hephaestus.proximity.api.DataSet;
 import dev.hephaestus.proximity.api.Values;
+import dev.hephaestus.proximity.api.json.JsonArray;
 import dev.hephaestus.proximity.api.json.JsonElement;
 import dev.hephaestus.proximity.api.json.JsonObject;
 import dev.hephaestus.proximity.api.json.JsonPrimitive;
@@ -161,16 +162,87 @@ public final class Proximity {
                 : Result.error("Error rendering cards:\n\t%s", String.join("\n\t", errors));
     }
 
+    private static final void replaceNameInOracleText(final JsonObject cardData, final JsonObject overrides, final String oldName, final String newName) {
+        final JsonPrimitive oracleTextJson =
+            overrides.has("oracle_text") ?
+            overrides.get("oracle_text").getAsJsonPrimitive() :
+            cardData.get("oracle_text").getAsJsonPrimitive();
+
+        final String oldOracleText = oracleTextJson.getAsString();;
+        String nameToReplace   = oldName;
+        String nameReplacement = newName;
+
+        // shorten the new name if we can
+        if (nameReplacement.contains(",")) {
+            nameReplacement = nameReplacement.split(",")[0];
+        }
+
+        // We replace the old name with the new name. Sometimes, the old name is abbreviated in the text. In this case, we do the same thing with the new text.
+        if (!oldOracleText.contains(nameToReplace)) {
+            if (nameToReplace.contains(",")) {
+                // shorten by comma. Example: "Nelly Borca, Impulsive Accuser"
+                nameToReplace = nameToReplace.split(",")[0];
+            } else if (nameToReplace.contains(" ")) {
+                // try to shorten by first word. Example: "Loran of the Third Path"
+                String firstWordInName = nameToReplace.split(" ")[0];
+                if (oldOracleText.contains(firstWordInName)) {
+                    nameToReplace = firstWordInName;
+                }
+            }
+        }
+
+        if (oldOracleText.contains(nameToReplace)) {
+            String newOracleText = oldOracleText.replaceAll(nameToReplace, nameReplacement);
+            oracleTextJson.setValue(newOracleText);
+
+            // System.out.println("Overrides: " + overrides);
+            System.out.println("Replacing name: '" + nameToReplace + "' with '" + nameReplacement + "'.");
+            System.out.println("Old Oracle Text:\n" + oldOracleText);
+            System.out.println("New Oracle Text:\n" + newOracleText);
+            System.out.println();
+        }
+    }
 
     public static void Assert(boolean b, Supplier<String> errorMessage) {
         if (!b) {
             throw new RuntimeException(errorMessage.get());
         }
     }
+
+    private static String[] getFaceNames(String cardName, int expectedNumberOfFaces) {
+        String[] face_names = cardName.split("//");
+
+        if (face_names.length != expectedNumberOfFaces) {
+            LOG.warn("Expected " + expectedNumberOfFaces + " card faces but '" + cardName + "' has " + face_names.length + " faces.");
+            String[] new_face_names = new String[expectedNumberOfFaces];
+            // Make face_names have exactly the expected length.
+            // Discard any extra names.
+            // Fill missing names with the last face name.
+            for (int i = 0; i < expectedNumberOfFaces; ++i) {
+                new_face_names[i] = face_names[Math.min(i, face_names.length - 1)];
+            }
+            face_names = new_face_names;
+        }
+
+        // trim all names
+        for (int i = 0; i < face_names.length; ++i) {
+            face_names[i] = face_names[i].trim();
+        }
+
+        return face_names;
+    }
+
     private void processCard(CardPrototype prototype, Consumer<RenderableData> dataConsumer, Consumer<String> errorConsumer) {
         prototype.getData().getAsJsonObject("proximity", "options")
                 .copyAll(this.options)
                 .copyAll(prototype.options());
+
+        // {
+        //     JsonPrimitive oracleTextJson = prototype.getData().get("oracle_text").getAsJsonPrimitive();
+        //     String oldOracleText = oracleTextJson.getAsString();
+        //     System.out.println(oldOracleText);
+        // }
+        // System.out.println(prototype.getData());
 
         // If we overwrite the name of the card and the card has an oracle text.
         final JsonObject overrides = prototype.overrides().getAsJsonObject();
@@ -186,45 +258,20 @@ public final class Proximity {
             }
 
             // 2. Replace name in oracle text.
-            if (prototype.getData().has("oracle_text")) {
-                final JsonPrimitive oracleTextJson =
-                    overrides.has("oracle_text") ?
-                    overrides.get("oracle_text").getAsJsonPrimitive() :
-                    cardData.get("oracle_text").getAsJsonPrimitive();
+            // First, check whether the card is double faced.
+            if (cardData.has("card_faces")) {
+                final JsonArray card_faces = cardData.getAsJsonArray("card_faces");
+                final String[] oldNames = getFaceNames(oldName, card_faces.size());
+                final String[] newNames = getFaceNames(newName, card_faces.size());
 
-                final String oldOracleText = oracleTextJson.getAsString();;
-                String nameToReplace   = oldName;
-                String nameReplacement = newName;
-
-                // shorten the new name if we can
-                if (nameReplacement.contains(",")) {
-                    nameReplacement = nameReplacement.split(",")[0];
-                }
-
-                // We replace the old name with the new name. Sometimes, the old name is abbreviated in the text. In this case, we do the same thing with the new text.
-                if (!oldOracleText.contains(nameToReplace)) {
-                    if (nameToReplace.contains(",")) {
-                        // shorten by comma. Example: "Nelly Borca, Impulsive Accuser"
-                        nameToReplace = nameToReplace.split(",")[0];
-                    } else if (nameToReplace.contains(" ")) {
-                        // try to shorten by first word. Example: "Loran of the Third Path"
-                        String firstWordInName = nameToReplace.split(" ")[0];
-                        if (oldOracleText.contains(firstWordInName)) {
-                            nameToReplace = firstWordInName;
-                        }
+                for (int i = 0; i < card_faces.size(); ++i) {
+                    final JsonObject card_face = card_faces.get(i).getAsJsonObject();
+                    if (card_face.has("oracle_text")) {
+                        replaceNameInOracleText(card_face, overrides, oldNames[i], newNames[i]);
                     }
                 }
-
-                if (oldOracleText.contains(nameToReplace)) {
-                    String newOracleText = oldOracleText.replaceAll(nameToReplace, nameReplacement);
-                    oracleTextJson.setValue(newOracleText);
-
-                    // System.out.println("Overrides: " + overrides);
-                    System.out.println("Replacing name: '" + nameToReplace + "' with '" + nameReplacement + "'.");
-                    System.out.println("Old Oracle Text:\n" + oldOracleText);
-                    System.out.println("New Oracle Text:\n" + newOracleText);
-                    System.out.println();
-                }
+            } else if (cardData.has("oracle_text")) {
+                replaceNameInOracleText(cardData, overrides, oldName, newName);
             }
         }
 
