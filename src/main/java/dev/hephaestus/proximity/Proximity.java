@@ -475,6 +475,15 @@ public final class Proximity {
         return Result.of(list);
     }
 
+    private static HttpRequest buildHTTPSRequest(URI uri) {
+        return HttpRequest.newBuilder()
+            .uri(uri)
+            .header("User-Agent", "ProximityFork/1.0")
+            .header("Accept", "application/json")
+            .GET()
+            .build();
+    }
+
     private Result<JsonObject> getCardInfo(CardPrototype prototype) {
         StringBuilder builder = new StringBuilder("https://api.scryfall.com/cards/named?");
 
@@ -501,10 +510,7 @@ public final class Proximity {
             try {
                 JsonObject card = JsonObject.parseObject(JsonReader.json5(this.cache.compute(URI.create(s), uri -> {
                     HttpClient client = HttpClient.newHttpClient();
-                    HttpRequest request = HttpRequest.newBuilder()
-                            .uri(uri)
-                            .GET()
-                            .build();
+                    HttpRequest request = buildHTTPSRequest(uri);
 
                     this.lastScryfallRequest = System.currentTimeMillis();
 
@@ -551,10 +557,7 @@ public final class Proximity {
 
                 JsonObject set = JsonObject.parseObject(JsonReader.json5(this.cache.compute(URI.create("https://api.scryfall.com/sets/" + card.getAsString("set")), uri -> {
                     HttpClient client = HttpClient.newHttpClient();
-                    HttpRequest request = HttpRequest.newBuilder()
-                            .uri(uri)
-                            .GET()
-                            .build();
+                    HttpRequest request = buildHTTPSRequest(uri);
 
                     this.lastScryfallRequest = System.currentTimeMillis();
 
