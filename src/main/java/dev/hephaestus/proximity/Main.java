@@ -132,7 +132,17 @@ public class Main {
                                         }
                                     }
 
-                                    Result<JsonElement> v = ParsingUtil.parseStringValue(value);
+                                    // for syntax sugar debugging:
+                                    System.out.print("override [");
+                                    for (var x : overrideKey) {
+                                        System.out.print(" " + x);
+                                    }
+                                    System.out.println(" ] with " + value);
+
+                                    Result<JsonElement> v =
+                                        overrideKey.length == 1 && "mana_cost".equals(overrideKey[0]) ?
+                                        Result.of(new JsonPrimitive(value)) :
+                                        ParsingUtil.parseStringValue(value);
 
                                     if (v.isOk()) {
                                         cardOverrides.add(overrideKey, v.get());

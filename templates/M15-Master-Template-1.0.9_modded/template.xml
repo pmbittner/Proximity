@@ -129,9 +129,6 @@
                     </Selector>
                     <Selector id="standard">
                         <Image id="vehicle">
-                            <Conditions>
-                                <IsPresent key="proximity.mtg.types.vehicle"/>
-                            </Conditions>
                         </Image>
                         <Image id="artifact">
                             <Conditions>
@@ -702,9 +699,6 @@
                 <Group id="pt">
                     <Selector>
                         <Image id="vehicle">
-                            <Conditions>
-                                <IsPresent key="proximity.mtg.types.vehicle"/>
-                            </Conditions>
                         </Image>
                         <Image id="monocolored" src="$join{colors}">
                             <Conditions>
@@ -733,9 +727,6 @@
                     <Selector>
                         <Text id="vehicle" x="2740" y="4062" alignment="center" value="${power}/${toughness}">
                             <Style font="Beleren2016-Bold" color="#FFFFFF" size="160"/>
-                            <Conditions>
-                                <IsPresent key="proximity.mtg.types.vehicle"/>
-                            </Conditions>
                         </Text>
                         <Text id="creature" x="2740" y="4062" alignment="center" value="${power}/${toughness}">
                             <Style font="Beleren2016-Bold" color="#000000" size="160"/>
@@ -744,12 +735,6 @@
                             </Conditions>
                         </Text>
                     </Selector>
-                    <Conditions>
-                        <Or>
-                            <IsPresent key="proximity.mtg.types.creature"/>
-                            <IsPresent key="proximity.mtg.types.vehicle"/>
-                        </Or>
-                    </Conditions>
                 </Group>
                 <Selector id="watermarks">
                     <Selector id="basics">
@@ -859,12 +844,6 @@
                     </VerticalLayout>
                     <Wrap>
                         <Rectangle x="2472" y="3869" width="535" height="315"/>
-                        <Conditions>
-                            <Or>
-                                <IsPresent key="proximity.mtg.types.creature"/>
-                                <IsPresent key="proximity.mtg.types.vehicle"/>
-                            </Or>
-                        </Conditions>
                     </Wrap>
                     <Wrap>
                         <Rectangle x="2672" y="3669" width="336" height="168"/>
@@ -921,13 +900,6 @@
                     <Selector id="copyright">
                         <Text value="™ &amp; © 2025 Wizards of the Coast" alignment="right" x="2956" y="4207">
                             <Style font="MPlantin" size="68"/>
-                            <Conditions>
-                                <Or>
-                                    <IsPresent key="proximity.mtg.types.planeswalker"/>
-                                    <IsPresent key="proximity.mtg.types.creature"/>
-                                    <IsPresent key="proximity.mtg.types.vehicle"/>
-                                </Or>
-                            </Conditions>
                         </Text>
                         <Text value="™ &amp; © 2021 Wizards of the Coast" alignment="right" x="2956" y="4130">
                             <Style font="MPlantin" size="68"/>

@@ -233,9 +233,14 @@ public final class Proximity {
     }
 
     private void processCard(CardPrototype prototype, Consumer<RenderableData> dataConsumer, Consumer<String> errorConsumer) {
+        final JsonObject overrides = prototype.overrides().getAsJsonObject();
+        if (overrides.has("set_symbol")) {
+            prototype.getData().set("set", new JsonPrimitive(overrides.get("set_symbol").getAsString()));
+        }
         prototype.getData().getAsJsonObject("proximity", "options")
                 .copyAll(this.options)
                 .copyAll(prototype.options());
+
 
         // {
         //     JsonPrimitive oracleTextJson = prototype.getData().get("oracle_text").getAsJsonPrimitive();
@@ -245,7 +250,6 @@ public final class Proximity {
         // System.out.println(prototype.getData());
 
         // If we overwrite the name of the card and the card has an oracle text.
-        final JsonObject overrides = prototype.overrides().getAsJsonObject();
         final JsonObject cardData = prototype.getData().getAsJsonObject();
         if (overrides.has("name")) {
             final String oldName = cardData.get("name").getAsString();
@@ -276,6 +280,7 @@ public final class Proximity {
         }
 
         Values.LIST_NAME.set(prototype.getData(), prototype.listName());
+        System.out.println("Prototype Source: " + prototype.source());
 
         for (int j = 0; j < prototype.options().getAsInt("count"); ++j) {
             int finalJ = j + prototype.number();
@@ -341,6 +346,7 @@ public final class Proximity {
                         switch (resource.getAttribute("type")) {
                             case "assets" -> {
                                 if (cache != null) {
+                                    System.out.println("Accessing remote resource: " + cache + "////" + location);
                                     source.wrapped.add(new RemoteFileSource(cache, location));
                                 }
                             }

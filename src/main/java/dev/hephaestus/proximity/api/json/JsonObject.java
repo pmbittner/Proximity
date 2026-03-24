@@ -16,6 +16,10 @@ import static dev.hephaestus.proximity.xml.RenderableData.XMLElement.handle;
 public class JsonObject extends JsonElement {
     private final Map<String, JsonElement> members = new LinkedHashMap<>();
 
+    public void set(String key, JsonElement value) {
+        members.put(key, value);
+    }
+
     public JsonObject() {
     }
 
